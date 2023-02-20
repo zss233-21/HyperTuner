@@ -1,0 +1,82 @@
+---
+- hosts: worker_155,worker_152,worker_153
+  vars:
+    ansible_sudo_pass: 123
+    os_configs_info:
+  remote_user: root
+  tasks:
+    - name: transfer param flie to 153,152
+      copy:
+        src: /home/zss/PycharmProjects/pythonProject/param_list.txt
+        dest: /home/zss/PycharmProjects/pythonProject/param_list.txt
+      become: yes
+      become_user: root
+      become_method: sudo
+    - name: start 155 turbostat
+      shell: "nohup /usr/lib/linux-tools/5.11.0-27-generic/turbostat  --show PkgWatt,CorWatt,RAMWatt --interval 1 --Summary --out /home/zss/PycharmProjects/pythonProject/result/energy-test-155.txt  --quiet"
+      become: yes
+      become_user: root
+      become_method: sudo
+      when: ansible_ssh_host =="192.168.1.155"
+      async: 100000
+      poll: 0
+    - name: start 153 turbostat
+      shell: "nohup /usr/lib/linux-tools/5.11.0-43-generic/turbostat  --show PkgWatt,CorWatt,RAMWatt --interval 1 --Summary --out /home/zss/PycharmProjects/pythonProject/result/energy-test-153.txt  --quiet"
+      become: yes
+      become_user: root
+      become_method: sudo
+      when: ansible_ssh_host =="192.168.1.153"
+      async: 100000
+      poll: 0
+    - name: start 152 turbostat
+      shell: "nohup /usr/lib/linux-tools/5.4.0-104-generic/turbostat  --show PkgWatt,CorWatt,RAMWatt --interval 1 --Summary --out /home/zss/PycharmProjects/pythonProject/result/energy-test-152.txt  --quiet"
+      become: yes
+      become_user: root
+      become_method: sudo
+      when: ansible_ssh_host =="192.168.1.152"
+      async: 100000
+      poll: 0
+    - name: start 155 tf.model.fit
+      shell: "ansible -i /etc/ansible/hosts test -m shell -a 'python3.6 /home/zss/PycharmProjects/pythonProject/dis/rnn.py'"
+      #      shell: "python3 /home/zss/PycharmProjects/pythonProject/dis/cnn_lenet.py"
+      become: yes
+      become_user: root
+      become_method: sudo
+      when: ansible_ssh_host =="192.168.1.155"
+      ignore_errors: yes
+    - name: kill turbostat
+      shell: "sudo ps -ef |grep t[u]rbostat |awk '{print $2}'|xargs kill -9"
+      become: yes
+      become_user: root
+      become_method: sudo
+    - name: transfer energy flie from 153 to 155
+      fetch:
+         src: /home/zss/PycharmProjects/pythonProject/result/energy-test-153.txt
+         dest: /home/zss/PycharmProjects/pythonProject/result/
+         flat: yes
+      become: yes
+      become_user: root
+      become_method: sudo
+      when: ansible_ssh_host =="192.168.1.153"
+    - name: transfer energy flie from 152 to 155
+      fetch:
+        src: /home/zss/PycharmProjects/pythonProject/result/energy-test-152.txt
+        dest: /home/zss/PycharmProjects/pythonProject/result/
+        flat: yes
+      become: yes
+      become_user: root
+      become_method: sudo
+      when: ansible_ssh_host =="192.168.1.152"
+#    - name: transfer acc flie from 152 to 155
+#      fetch:
+#        src: /home/zss/PycharmProjects/pythonProject/vgg/test.csv
+#        dest: /home/zss/PycharmProjects/pythonProject/vgg/
+#        flat: yes
+#      become: yes
+#      become_user: root
+#      become_method: sudo
+#      when: ansible_ssh_host =="192.168.1.152"
+
+
+
+

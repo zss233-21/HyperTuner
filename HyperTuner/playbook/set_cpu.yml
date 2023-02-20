@@ -1,0 +1,29 @@
+---
+- hosts: worker_155,worker_153,worker_152
+  vars:
+
+    ansible_sudo_pass: 123
+
+    os_configs_info:
+    #sampled_config_file: "../results/{{task_name}}/{{task_id}}_os_config.yml"
+  remote_user: root
+  tasks:
+    - name: transfer param flie to 153,152
+      copy:
+        src: /home/zss/PycharmProjects/pythonProject/param_list.txt
+        dest: /home/zss/PycharmProjects/pythonProject/param_list.txt
+      become: yes
+      become_user: root
+      become_method: sudo
+    - name: set freq
+      shell: "cpufreq-set -c {{item}} -g conservative"
+      with_items: "{{param}}"
+      become: yes
+      become_user: root
+      become_method: sudo
+
+
+
+
+
+
